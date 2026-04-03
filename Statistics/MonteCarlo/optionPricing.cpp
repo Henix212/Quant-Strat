@@ -47,5 +47,10 @@ int main()
     params.v = 0.0991;
     params.T = 0.16;
 
-    monteCarloOptionPricing(nbSimulations, params);
+    double monteCarloPrice = monteCarloOptionPricing(nbSimulations, params);
+ 
+    std::cout << "\n Monte Carlo Call Price: " << monteCarloPrice;
+    std::cout << std::endl;
+    
+    return 0;
 }
