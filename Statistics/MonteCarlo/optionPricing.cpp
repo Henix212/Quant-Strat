@@ -5,6 +5,8 @@
 #include <random>
 #include <cmath>
 #include <algorithm>
+#include <vector>
+#include <iomanip>
 
 struct callOptionEuParams
 {
@@ -15,30 +17,42 @@ struct callOptionEuParams
     double T; // Maturity
 };
 
-double monteCarloOptionPricing(const int nbSim, const callOptionEuParams params)
+std::vector<double> monteCarloOptionPricing(const int nbSim, const callOptionEuParams params)
 {
     double drift = (params.r - 0.5 * params.v * params.v) * params.T;
     double diffusion = params.v * sqrt(params.T);
 
     double payOffSum = 0;
+    double payoffSquaredSum = 0;
 
-    std::default_random_engine generator;
-    std::normal_distribution<double> distribution(0.0, 1.0); // Gaussian distribution with most used parameters
+    std::random_device rd;
+    std::default_random_engine generator(rd());
+    std::normal_distribution<double> distribution(0.0, 1.0);
 
     for (int i = 0; i < nbSim; i++)
     {
         double Z = distribution(generator);
-        double SForward = params.T * exp(drift + diffusion * Z);
+        double SForward = params.S * exp(drift + diffusion * Z);
+        double payoff = std::max(SForward - params.K, 0.0);
 
-        payOffSum += std::max(SForward - params.K, 0.0);
+        payOffSum += payoff;
+        payoffSquaredSum += payoff * payoff;
     }
 
-    return payOffSum / nbSim * exp(-params.r * params.T);
+    double meanPayoff = payOffSum / nbSim;
+    double discountFactor = exp(-params.r * params.T);
+    double mcPrice = meanPayoff * discountFactor;
+
+    double variance = ( payoffSquaredSum / nbSim) - (meanPayoff * meanPayoff);
+    double stdError = sqrt(variance / nbSim) * discountFactor;
+    double marginError = 1.96 * stdError;
+
+    return {mcPrice,marginError};
 }
 
 int main()
 {
-    const int nbSimulations = 10000;
+    const int nbSimulations = 100000;
 
     callOptionEuParams params;
     params.S = 101.15;
@@ -47,10 +61,11 @@ int main()
     params.v = 0.0991;
     params.T = 0.16;
 
-    double monteCarloPrice = monteCarloOptionPricing(nbSimulations, params);
+    std::vector<double> monteCarloPrice = monteCarloOptionPricing(nbSimulations, params);
  
-    std::cout << "\n Monte Carlo Call Price: " << monteCarloPrice;
-    std::cout << std::endl;
-    
+    std::cout << std::fixed << std::setprecision(4);
+    std::cout << "Monte Carlo Call Price: " << monteCarloPrice[0] << std::endl;
+    std::cout << "Margin error (95\% confidence): " << monteCarloPrice[1] << std::endl;
+
     return 0;
 }
