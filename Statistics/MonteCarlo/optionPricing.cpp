@@ -43,7 +43,7 @@ std::vector<double> monteCarloOptionPricing(const int nbSim, const callOptionEuP
     double discountFactor = exp(-params.r * params.T);
     double mcPrice = meanPayoff * discountFactor;
 
-    double variance = ( payoffSquaredSum / nbSim) - (meanPayoff * meanPayoff);
+    double variance = (payoffSquaredSum / nbSim) - (meanPayoff * meanPayoff);
     double stdError = sqrt(variance / nbSim) * discountFactor;
     double marginError = 1.96 * stdError;
 
