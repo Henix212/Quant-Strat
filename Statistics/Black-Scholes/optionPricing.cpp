@@ -43,11 +43,12 @@ int main()
     params.r = 0.01;
     params.v = 0.0991;
     params.T = 0.16;
-    params.q = 0.03;
+    params.q = 0;
 
     double price = blackScholesOptionPricing(params);
 
-    std::cout << price << std::endl;
+    std::cout << std::fixed << std::setprecision(4);
+    std::cout << "BSM Fair-Value Price: " << price << std::endl;
 
     return 0;
 }

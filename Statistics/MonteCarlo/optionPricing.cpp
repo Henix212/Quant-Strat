@@ -60,7 +60,7 @@ int main()
     params.r = 0.01;
     params.v = 0.0991;
     params.T = 0.16;
-    params.q = 0.03;
+    params.q = 0;
 
     std::vector<double> monteCarloPrice = monteCarloOptionPricing(nbSimulations, params);
  
