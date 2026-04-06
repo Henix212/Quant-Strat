@@ -15,13 +15,13 @@ struct callOptionEuParams
     double r; // Risk-free rate
     double v; // Volatility
     double T; // Maturity
+    double q; // Dividend yield percentage
 };
 
 std::vector<double> monteCarloOptionPricing(const int nbSim, const callOptionEuParams params)
 {
-    double drift = (params.r - 0.5 * params.v * params.v) * params.T;
+    double drift = (params.r - params.q - 0.5 * params.v * params.v) * params.T;
     double diffusion = params.v * sqrt(params.T);
-
     double payOffSum = 0;
     double payoffSquaredSum = 0;
 
@@ -60,6 +60,7 @@ int main()
     params.r = 0.01;
     params.v = 0.0991;
     params.T = 0.16;
+    params.q = 0.03;
 
     std::vector<double> monteCarloPrice = monteCarloOptionPricing(nbSimulations, params);
  
