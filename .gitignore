@@ -2,4 +2,5 @@
 data/
 .DS_Store
 .vscode
-main.exe
+main_montecarlo.exe
+main_blackscholes.exe
