@@ -3,4 +3,4 @@ data/
 .DS_Store
 .vscode
 main_montecarlo.exe
-main_blackscholes.exe
+*.exe
