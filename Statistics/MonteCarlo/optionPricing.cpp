@@ -18,6 +18,12 @@ struct callOptionEuParams
     double q; // Dividend yield percentage
 };
 
+/**
+    * @brief Compute the Monte Carlo simulation.
+    * @param nbSim Number of simulation we will compute
+    * @param params Parameters of a EU call option.
+    * @return The strike price of a EU call option and a standar error.
+*/
 std::vector<double> monteCarloOptionPricing(const int nbSim, const callOptionEuParams params)
 {
     double drift = (params.r - params.q - 0.5 * params.v * params.v) * params.T;

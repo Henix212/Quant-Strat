@@ -18,6 +18,11 @@ struct callOptionEuParams
     double q; // Dividend yield percentage
 };
 
+/**
+    * @brief Compute the Black-Scholes formula.
+    * @param params Parameters of a EU call option.
+    * @return The strike price of a EU call option.
+*/
 double blackScholesOptionPricing(const callOptionEuParams params)
 {
     const double d1 = (std::log(params.S / params.K) + (params.r - params.q + (params.v * params.v / 2.0)) * params.T) / (params.v * std::sqrt(params.T));
@@ -33,6 +38,9 @@ double blackScholesOptionPricing(const callOptionEuParams params)
     return price;
 }
 
+/**
+    * @brief Main loop
+*/
 int main()
 {
     const int nbSimulations = 100000;
