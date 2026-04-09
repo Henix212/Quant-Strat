@@ -1,6 +1,10 @@
 #include <iostream>
 #include <random>
 #include <Eigen/Dense>
+#include <functional>
+#include <string>
+
+#include "activationFunction.cpp" 
 
 class Perceptron
 {   
@@ -9,7 +13,10 @@ public:
     int nb_inputs;
     double bias;
 
-    Perceptron(int nb_inputs) : nb_inputs(nb_inputs), weights(nb_inputs)
+    std::function<double(double)> activation;
+    std::function<double(double)> derivative;
+
+    Perceptron(int nb_inputs, std::string func_name) : nb_inputs(nb_inputs), weights(nb_inputs)
     {
         std::random_device rd;
         std::default_random_engine generator(rd());
@@ -21,18 +28,32 @@ public:
         {
             weights(i) = dist(generator);
         };
+
+        if (func_name == "sigmoid") {
+            activation = ActivationFunction::sigmoid;
+            derivative = ActivationFunction::sigmoid_derivative;
+        } else if (func_name == "relu") {
+            activation = ActivationFunction::relu;
+            derivative = ActivationFunction::relu_derivative;
+        } else { 
+            activation = ActivationFunction::heaviside;
+            derivative = [](double x) { return 1.0; }; // La dérivée pour l'apprentissage
+        }
     };  
 
     double forward(const Eigen::VectorXd& x)
-    {
-        return weights.dot(x) + bias;
+    {   
+        double z = weights.dot(x) + bias;
+
+        return activation(z);
     };
 
-    void update_weights(const Eigen::VectorXd& x, double error, double learning_rate)
-    {
-        weights -= learning_rate * error * x;
-        bias -= learning_rate * error;
-    };
+    void update_weights(const Eigen::VectorXd& x, double error, double learning_rate, double y_pred) {
+        double gradient = error * derivative(y_pred); 
+        
+        weights -= learning_rate * gradient * x;
+        bias -= learning_rate * gradient;
+    }
     
     // Getters and setters 
     Eigen::VectorXd get_weights()
