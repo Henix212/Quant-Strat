@@ -1,45 +1,49 @@
 #include <iostream>
+#include <vector>
 #include <Eigen/Dense>
-#include "modules/perceptron.cpp"
+#include <iomanip>
+
+#include "modules/mlp.cpp"
 
 int main() {
-    Eigen::MatrixXd X(4, 2);
-    Eigen::VectorXd Y(4);
-
-    X << 1, 0,
-         1, 1,
-         0, 1,
-         0, 0;
-
-    Y << 1.0, 1.0, 1.0, 0.0;
-
-    Perceptron p(2, "relu");
-
     double learning_rate = 0.1;
-    int epochs = 10000;
+    MLP mlp(learning_rate);
 
-    for (int epoch = 0; epoch < epochs; epoch++) {
-        for (int i = 0; i < X.rows(); i++) {
-            Eigen::VectorXd xi = X.row(i);
-            double y_true = Y(i);
-            
-            double y_pred = p.forward(xi);
-            
-            double error = y_pred - y_true;
+    mlp.input_layer(2);
+    mlp.add_layer(4, "sigmoid"); 
+    mlp.add_layer(1, "heaviside"); 
 
-            p.update_weights(xi, error, learning_rate, y_pred);
-        }
+    std::vector<Eigen::VectorXd> inputs;
+    inputs.push_back((Eigen::VectorXd(2) << 0, 0).finished());
+    inputs.push_back((Eigen::VectorXd(2) << 0, 1).finished());
+    inputs.push_back((Eigen::VectorXd(2) << 1, 0).finished());
+    inputs.push_back((Eigen::VectorXd(2) << 1, 1).finished());
+
+    std::vector<Eigen::VectorXd> labels;
+    labels.push_back((Eigen::VectorXd(1) << 0).finished()); 
+    labels.push_back((Eigen::VectorXd(1) << 1).finished()); 
+    labels.push_back((Eigen::VectorXd(1) << 1).finished()); 
+    labels.push_back((Eigen::VectorXd(1) << 0).finished()); 
+
+    std::cout << "--- Debut de l'entrainement ---" << std::endl;
+
+    mlp.train(inputs, labels, 50000, 1); 
+    std::cout << "--- Fin de l'entrainement ---" << std::endl;
+
+    std::cout << "\nResultats des tests (Seuil de decision 0.5) :" << std::endl;
+    std::cout << std::fixed << std::setprecision(4);
+
+    for (size_t i = 0; i < inputs.size(); ++i) {
+        Eigen::VectorXd prediction = mlp.predict(inputs[i]);
+        
+        double pred = prediction(0);
+                
+        std::cout << "Entree: [" << inputs[i].transpose() << "] " << std::endl
+                  << "Sortie brute: " << pred << std::endl;
     }
 
-    std::cout << "Poids finaux : " << p.get_weights().transpose() << std::endl;
-    std::cout << "Bias final   : " << p.get_bias() << std::endl;
-    std::cout << "\nPredictions :" << std::endl;
-
-    for (int i = 0; i < X.rows(); i++) {
-        Eigen::VectorXd xi = X.row(i);
-        std::cout << "Input: [" << xi.transpose() << "] => Pred: " 
-                  << (p.forward(xi) > 0.5 ? 1 : 0) << std::endl;
-    }
+    mlp.save_model("poids_reseau.txt");
+    std::cout << "\nModele sauvegarde dans 'poids_reseau.txt'" << std::endl;
 
     return 0;
 }
