@@ -4,3 +4,4 @@ data/
 .vscode
 main_montecarlo.exe
 *.exe
+*.txt
