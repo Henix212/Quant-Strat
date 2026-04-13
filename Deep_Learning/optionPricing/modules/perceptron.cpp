@@ -35,9 +35,9 @@ public:
         } else if (func_name == "relu") {
             activation = ActivationFunction::relu;
             derivative = ActivationFunction::relu_derivative;
-        } else { 
+        } else if (func_name == "heaviside"){ 
             activation = ActivationFunction::heaviside;
-            derivative = [](double x) { return 1.0; }; // La dérivée pour l'apprentissage
+            derivative = [](double x) { return 1.0; };
         }
     };  
 
