@@ -5,3 +5,4 @@ data/
 main_montecarlo.exe
 *.exe
 *.txt
+options_dataset.csv
