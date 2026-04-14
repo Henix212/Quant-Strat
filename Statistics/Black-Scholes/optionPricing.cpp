@@ -38,10 +38,55 @@ double blackScholesOptionPricing(const callOptionEuParams params)
     return price;
 }
 
+int create_dataset(int nbSamples, std::string filename) {
+    std::ofstream file(filename);
+
+    std::random_device rd;
+    std::mt19937 gen(rd());
+
+    std::uniform_real_distribution<> distS(10.0, 500.0);    
+    std::uniform_real_distribution<> distK_rel(0.7, 1.3);   
+    std::uniform_real_distribution<> distR(0.0, 0.05);      
+    std::uniform_real_distribution<> distV(0.05, 0.90);     
+    std::uniform_real_distribution<> distT(0.01, 2.0);
+    std::uniform_real_distribution<> distq(0.0, 5.0);      
+    
+    file << "S,K,r,v,T,q,Price\n";
+
+    std::cout << "Génération de " << nbSamples << " échantillons..." << std::endl;
+
+    for (int i = 0; i < nbSamples; ++i) {
+        callOptionEuParams p;
+        p.S = distS(gen);
+        p.K = p.S * distK_rel(gen); 
+        p.r = distR(gen);
+        p.v = distV(gen);
+        p.T = distT(gen);
+        p.q = distq(gen); 
+
+        double price = blackScholesOptionPricing(p);
+
+        file << p.S << "," 
+             << p.K << "," 
+             << p.r << "," 
+             << p.v << "," 
+             << p.T << "," 
+             << p.q << "," 
+             << price << "\n";
+        
+        if (i % 10000 == 0) std::cout << "Progrès : " << i << "/" << nbSamples << std::endl;
+    }
+
+    file.close();
+    std::cout << "Terminé. Dataset sauvegardé dans 'options_dataset.csv'" << std::endl;
+
+    return 0;
+}
+
 /**
     * @brief Main loop
 */
-int main()
+double valide_input_bs()
 {
     const int nbSimulations = 100000;
 
@@ -58,5 +103,5 @@ int main()
     std::cout << std::fixed << std::setprecision(4);
     std::cout << "BSM Fair-Value Price: " << price << std::endl;
 
-    return 0;
+    return price;
 }
