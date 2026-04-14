@@ -1,7 +1,7 @@
 #include <iostream>
 #include <fstream>
+#include <vector>
 #include <Eigen/Dense>
-
 #include "perceptron.cpp"
 
 class MLP {
@@ -13,11 +13,15 @@ private:
 public:
     MLP(double lr) : input_size(0), learning_rate(lr) {}
 
-    void input_layer(int nb_input) {
-        this->input_size = nb_input;
+    void input_layer(int nb_input) { 
+        this->input_size = nb_input; 
     }
 
     void add_layer(int nb_neurons, std::string activation_fn) {
+        if (layers.empty() && input_size == 0) {
+            std::cerr << "CRITICAL ERROR: Call input_layer() before add_layer()!" << std::endl;
+        }
+
         int in_dim = layers.empty() ? input_size : layers.back().size();
         std::vector<Perceptron> layer;
         for (int i = 0; i < nb_neurons; ++i) {
@@ -26,74 +30,76 @@ public:
         layers.push_back(layer);
     }
 
-    std::pair<Eigen::VectorXd, std::vector<Eigen::VectorXd>> forward_all(const Eigen::VectorXd& inputs) {
-        std::vector<Eigen::VectorXd> activations;
-        Eigen::VectorXd current_in = inputs;
+    std::pair<std::vector<Eigen::VectorXd>, std::vector<Eigen::VectorXd>> forward_all(const Eigen::VectorXd& input) {
+        std::vector<Eigen::VectorXd> zs, as;
+        Eigen::VectorXd current_a = input;
 
         for (auto& layer : layers) {
-            Eigen::VectorXd next_in(layer.size());
+            Eigen::VectorXd z_layer(layer.size());
+            Eigen::VectorXd a_layer(layer.size());
             for (int i = 0; i < layer.size(); ++i) {
-                next_in(i) = layer[i].forward(current_in);
+                z_layer(i) = layer[i].get_z(current_a);
+                a_layer(i) = layer[i].activation(z_layer(i));
             }
-            activations.push_back(next_in);
-            current_in = next_in;
+            zs.push_back(z_layer);
+            as.push_back(a_layer);
+            current_a = a_layer;
         }
-        return {current_in, activations};
+        return {zs, as};
     }
 
-    void train(const std::vector<Eigen::VectorXd>& inputs, const std::vector<Eigen::VectorXd>& labels, int epochs, int verbose = 0) {
+    void train(const std::vector<Eigen::VectorXd>& inputs, const std::vector<Eigen::VectorXd>& labels, int epochs, int verbose = 1) {
         for (int e = 0; e < epochs; ++e) {
             double total_loss = 0;
-
             for (size_t s = 0; s < inputs.size(); ++s) {
-                auto [pred, acts] = forward_all(inputs[s]);
-
+                auto [zs, as] = forward_all(inputs[s]);
                 std::vector<Eigen::VectorXd> deltas(layers.size());
 
-                int last = layers.size() - 1;
-                deltas[last].resize(layers[last].size());
-                for (int j = 0; j < layers[last].size(); ++j) {
-                    double local_error = pred(j) - labels[s](j);
-                    deltas[last](j) = local_error * layers[last][j].derivative(pred(j));
+                int L = layers.size() - 1;
+                deltas[L].resize(layers[L].size());
+                for (int j = 0; j < layers[L].size(); ++j) {
+                    double error = as[L](j) - labels[s](j);
+                    deltas[L](j) = error * layers[L][j].derivative(zs[L](j));
                 }
 
-                for (int i = last - 1; i >= 0; --i) {
+                for (int i = L - 1; i >= 0; --i) {
                     deltas[i].resize(layers[i].size());
                     for (int j = 0; j < layers[i].size(); ++j) {
                         double sum_delta = 0;
                         for (int k = 0; k < layers[i+1].size(); ++k) {
                             sum_delta += deltas[i+1](k) * layers[i+1][k].weights(j);
                         }
-                        deltas[i](j) = sum_delta * layers[i][j].derivative(acts[i](j));
+                        deltas[i](j) = sum_delta * layers[i][j].derivative(zs[i](j));
                     }
                 }
 
                 for (int i = 0; i < layers.size(); ++i) {
-                    Eigen::VectorXd layer_input = (i == 0) ? inputs[s] : acts[i-1];
+                    Eigen::VectorXd layer_in = (i == 0) ? inputs[s] : as[i-1];
                     for (int j = 0; j < layers[i].size(); ++j) {
-                        layers[i][j].weights -= learning_rate * deltas[i](j) * layer_input;
+                        layers[i][j].weights -= learning_rate * deltas[i](j) * layer_in;
                         layers[i][j].bias -= learning_rate * deltas[i](j);
                     }
                 }
-                total_loss += (pred - labels[s]).squaredNorm();
+                total_loss += (as[L] - labels[s]).squaredNorm();
             }
-            if (e % 10 == 0 && verbose == 1) std::cout << "Epoch " << e+1 << " - Loss: " << total_loss/inputs.size() << std::endl;
+            if (verbose && (e % 10 == 0)) 
+                std::cout << "Epoch " << e+1 << " - Loss: " << total_loss/inputs.size() << std::endl;
         }
     }
 
     void save_model(std::string filename) {
-        std::fstream file(filename,std::ofstream::out);
+        std::ofstream file(filename);
         for (size_t i = 0; i < layers.size(); ++i) {
-            file << "--- Couche " << i+1 << " ---\n";
+            file << "--- Layer " << i+1 << " ---\n";
             for (size_t j = 0; j < layers[i].size(); ++j) {
-                file << " Neurone " << j+1 << ":\n Poids: " << layers[i][j].weights.transpose() << "\n Biais: " << layers[i][j].bias << "\n";
+                file << " Neuron " << j+1 << ":\n Weights: " << layers[i][j].weights.transpose() 
+                     << "\n Bias: " << layers[i][j].bias << "\n";
             }
         }
     }
 
     Eigen::VectorXd predict(const Eigen::VectorXd& input) {
-        auto [output, _] = forward_all(input);
-        
-        return output;
+        auto [_, as] = forward_all(input);
+        return as.back();
     }
 };
