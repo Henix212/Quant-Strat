@@ -1,8 +1,10 @@
+*.txt
+!CMakeLists.txt
 .venv
 data/
 .DS_Store
 .vscode
 main_montecarlo.exe
 *.exe
-*.txt
 options_dataset.csv
+build
