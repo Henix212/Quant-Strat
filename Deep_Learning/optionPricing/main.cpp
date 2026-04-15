@@ -4,7 +4,7 @@
 #include <iomanip>
 #include <string>
 
-#include "modules/mlp.cpp"
+#include "modules/include/mlp.hpp"
 #include "../../Statistics/Black-Scholes/optionPricing.cpp"
 
 std::string filename = "options_dataset.csv";
@@ -53,7 +53,7 @@ void load_dataset(const std::string& filename,
 
 int main() {
     const double learning_rate = 0.0001; 
-    const int epochs = 500;
+    const int epochs = 1000;
     const std::string filename = "options_dataset.csv";
 
     load_dataset(filename, inputs, labels);
