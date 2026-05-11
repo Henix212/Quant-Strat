@@ -1,23 +1,23 @@
-# 1. Vérifie si le dossier build existe, sinon le crée
-if (-not (Test-Path "build")) {
-    New-Item -ItemType Directory -Path "build"
-}
+#!/bin/bash
+
+if [ ! -d "build" ]; then
+    mkdir build
+fi
 
 cd build
 
-cmake -G "MinGW Makefiles" ..
+cmake ..
 
 cmake --build .
 
-if ($LASTEXITCODE -eq 0) {
-    
-    if (Test-Path "../options_dataset.csv") {
-        Copy-Item "../options_dataset.csv" . -Force
-    }
+if [ $? -eq 0 ]; then
+    if [ -f "../options_dataset.csv" ]; then
+        cp "../options_dataset.csv" .
+    fi
 
-    ./optionPricingDl.exe
-} else {
-    Write-Host "ERREUR : La compilation a echoue." -ForegroundColor Red
-}
+    ./optionPricingDl
+else
+    echo "ERREUR : La compilation a échoué."
+fi
 
 cd ..
