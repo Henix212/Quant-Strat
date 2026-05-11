@@ -10,7 +10,7 @@ Layer::Layer(int in_dim, int out_dim, const std::string& fn)
       activation_fn(fn) {}
 
 Eigen::VectorXd Layer::z(const Eigen::VectorXd& input) const {
-    return W * input + b;                          // (n_out,) — une seule op matricielle
+    return W * input + b;                         
 }
 
 Eigen::VectorXd Layer::activate(const Eigen::VectorXd& z) const {
