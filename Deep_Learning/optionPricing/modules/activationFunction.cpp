@@ -47,3 +47,21 @@ double ActivationFunction::heaviside(double x) {
 double ActivationFunction::heaviside_derivative(double z) {
     return 0.0;
 }
+
+double ActivationFunction::apply(const std::string& name, double x) {
+    if (name == "sigmoid") return sigmoid(x);
+    if (name == "relu") return relu(x);
+    if (name == "leaky_relu") return leaky_relu(x);
+    if (name == "softplus") return softplus(x);
+    if (name == "heaviside") return heaviside(x);
+    return sigmoid(x); // Default
+}
+
+double ActivationFunction::derivative(const std::string& name, double x) {
+    if (name == "sigmoid") return sigmoid_derivative(x);
+    if (name == "relu") return relu_derivative(x);
+    if (name == "leaky_relu") return leaky_relu_derivative(x);
+    if (name == "softplus") return softplus_derivative(x);
+    if (name == "heaviside") return heaviside_derivative(x);
+    return sigmoid_derivative(x); // Default
+}

@@ -8,7 +8,7 @@
 #include "../../Statistics/Black-Scholes/optionPricing.cpp"
 
 std::string filename = "options_dataset.csv";
-int nbSamples = 10000;
+int nbSamples = 100000;
 
 std::vector<Eigen::VectorXd> inputs;
 std::vector<Eigen::VectorXd> labels;
@@ -55,6 +55,8 @@ int main() {
     const double learning_rate = 0.0001; 
     const int epochs = 1000;
     const std::string filename = "options_dataset.csv";
+    
+    create_dataset(nbSamples, filename);
 
     load_dataset(filename, inputs, labels);
 

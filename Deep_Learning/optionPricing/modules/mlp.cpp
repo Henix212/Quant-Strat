@@ -16,13 +16,13 @@ Eigen::VectorXd Layer::z(const Eigen::VectorXd& input) const {
 Eigen::VectorXd Layer::activate(const Eigen::VectorXd& z) const {
     return z.unaryExpr([&](double v) {
         return ActivationFunction::apply(activation_fn, v);
-    });
+    }).eval();
 }
 
 Eigen::VectorXd Layer::derivative(const Eigen::VectorXd& z) const {
     return z.unaryExpr([&](double v) {
         return ActivationFunction::derivative(activation_fn, v);
-    });
+    }).eval();
 }
 
 MLP::MLP(double lr) : input_size(0), learning_rate(lr) {}

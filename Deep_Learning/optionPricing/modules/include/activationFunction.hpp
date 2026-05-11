@@ -2,9 +2,13 @@
 #define ACTIVATION_FUNCTION_HPP
 
 #include <cmath>
+#include <string>
 
 class ActivationFunction { 
 public:
+    static double apply(const std::string& name, double x);
+    static double derivative(const std::string& name, double x);
+
     static double sigmoid(double x);
     static double sigmoid_derivative(double z);
 
